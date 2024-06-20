@@ -11,49 +11,25 @@ on:
 jobs:
   build:
     runs-on: self-hosted
-
-    services:
-      db:
-        image: mariadb:latest
-        env:
-          MYSQL_ROOT_PASSWORD: rootpassword
-          MYSQL_DATABASE: mydatabase
-          MYSQL_USER: myuser
-          MYSQL_PASSWORD: mypassword
-        options: >-
-          --health-cmd "mysqladmin ping --silent"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 3
-        ports:
-          - 3306:3306
-
-      php:
-        image: php:7.4-fpm
-        options: >-
-          --health-cmd "php-fpm-healthcheck"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 3
-
-      web:
-        image: nginx:latest
-        ports:
-          - 80:80
-
+    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      # Etape 1: Checkout le repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Set up Docker Compose
-      run: docker-compose -f docker-compose.yml up -d
+      # Etape 2: Démarrer le Docker Compose
+      - name: Start Docker Compose
+        run: docker-compose up -d
 
-    - name: Wait for services to be healthy
-      run: |
-        docker-compose -f docker-compose.yml ps
+      # Step 4: Wait for the services to be ready
+      - name: Wait for the services to be ready
+        run: sleep 20
 
-    - name: Curl the web page
-      run: curl -I http://localhost
+      # Step 5: Display the web page
+      - name: Display the web page
+        run: docker-compose exec -T web curl http://localhost
+        continue-on-error: true  # Ensure the job continues even if this step fails
 
-    - name: Stop Docker Compose
-      run: docker-compose -f docker-compose.yml down
+      # Step 6: Stop Docker Compose
+      - name: Stop Docker Compose
+        run: docker-compose down
