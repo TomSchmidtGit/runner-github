@@ -19,7 +19,7 @@ jobs:
 
       # Etape 2: Démarrer le Docker Compose
       - name: Start Docker Compose
-        run: docker-compose up -d
+        run: docker compose up -d
 
       # Step 4: Wait for the services to be ready
       - name: Wait for the services to be ready
@@ -27,9 +27,9 @@ jobs:
 
       # Step 5: Display the web page
       - name: Display the web page
-        run: docker-compose exec -T web curl http://localhost
+        run: docker compose exec -T web curl http://localhost
         continue-on-error: true  # Ensure the job continues even if this step fails
 
       # Step 6: Stop Docker Compose
       - name: Stop Docker Compose
-        run: docker-compose down
+        run: docker compose down
