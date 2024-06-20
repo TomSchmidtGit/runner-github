@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: mariadb:latest
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: mydatabase
+          MYSQL_USER: myuser
+          MYSQL_PASSWORD: mypassword
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 3306:3306
+
+      php:
+        image: php:7.4-fpm
+        options: >-
+          --health-cmd "php-fpm-healthcheck"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
+      web:
+        image: nginx:latest
+        ports:
+          - 80:80
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Compose
+      run: docker-compose -f docker-compose.yml up -d
+
+    - name: Wait for services to be healthy
+      run: |
+        docker-compose -f docker-compose.yml ps
+
+    - name: Curl the web page
+      run: curl -I http://localhost
+
+    - name: Stop Docker Compose
+      run: docker-compose -f docker-compose.yml down
